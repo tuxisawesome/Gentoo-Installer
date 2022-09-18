@@ -1,0 +1,1 @@
+# Gentoo install script for the people!
