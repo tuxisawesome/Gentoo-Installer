@@ -23,7 +23,13 @@ system(f"parted -a optimal {device} - name 4 rootfs")
 print("* Setting EFI Partition as EFI partition...")
 system(f"parted -a optimal {device} - set 2 boot on")
 system(f"parted -a optimal {device} - print")
-
-
+print("* Formatting new partitions")
+system(f"mkfs.vfat {device}1")
+system(f"mkfs.vfat {device}2")
+system(f"mkfs.ext4 {device}4")
+system(f"mkswap {device}3")
+print("* Activating swap")
+system(f"swapon {device}3")
+system(f"mount {device}4 /mnt/gentoo")
 
 print("Partitioning success!")

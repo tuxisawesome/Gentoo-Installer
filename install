@@ -24,6 +24,12 @@ while true; do
     "1" "Get network information" \
     "2" "Get drive information" \
     "3" "Partition drives" \
+    "4" "Download/Install Stage3" \
+    "5" "Edit make.conf" \
+    "6" "Prep for chroot and chroot" \
+    "7" "Chroot without preparing" \
+    "8" "Reboot" \
+    "9" "Exit to shell" \
     2>&1 1>&3)
   exit_status=$?
   exec 3>&-
@@ -45,11 +51,43 @@ while true; do
       display_result "Network addresses"
       ;;
     2 )
-      result=$(df -h)
-      display_result "Disk usage"
+      result=$(fdisk -l)
+      display_result "Disk information"
       ;;
     3 )
-        bash scripts/diskpart.sh
+        bash scripts/1-diskpart.sh
+
+      ;;
+    4 )
+        bash scripts/2-stage3.sh
+
+      ;;
+    5 )
+        bash scripts/3-makeconf.sh
+
+      ;;
+    6 )
+        bash scripts/4-chroot.sh
+
+      ;;
+    7 )
+        
+        mount --types proc /proc /mnt/gentoo/proc
+        mount --rbind /sys /mnt/gentoo/sys
+        mount --make-rslave /mnt/gentoo/sys
+        mount --rbind /dev /mnt/gentoo/dev
+        mount --make-rslave /mnt/gentoo/dev
+        mount --bind /run /mnt/gentoo/run
+        mount --make-slave /mnt/gentoo/run
+        chroot /mnt/gentoo /bin/bash
+
+      ;;
+    8 )
+        reboot
+
+      ;;
+    9 )
+        exit
 
       ;;
   esac
