@@ -13,4 +13,5 @@ mount --make-rslave /mnt/gentoo/dev
 mount --bind /run /mnt/gentoo/run
 mount --make-slave /mnt/gentoo/run
 echo "Now execute main.sh from the folder innerscripts"
+chroot /mnt/gentoo /innerscripts/main.sh
 chroot /mnt/gentoo /bin/bash

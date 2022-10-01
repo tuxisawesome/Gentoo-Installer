@@ -1,1 +1,1 @@
-bash scripts/99-test.sh
+exit
