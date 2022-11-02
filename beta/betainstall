@@ -1,0 +1,228 @@
+#!/bin/bash
+
+GITHUB="https://github.com/tuxisawesome/Gentoo-Installer/raw/master"
+
+NAME="WalterOS Linux Installer (BETA)"
+####### USER CONFIGS
+TYPE="uefi"
+#TYPE="bios"
+
+#STAGE4_URL="https://dev.gentoo.org/~ago/stage4/stage4-hardened-20221017.tar.xz" ; MD5SUM="ed456edca0996a53b58915be89848619"
+STAGE4_URL="https://dev.gentoo.org/~ago/stage4/stage4-standard-20221017.tar.xz" ; MD5SUM="6d6b2a161d32c25295ee905778427dab"
+
+DISK="/dev/sda"
+ESP="/dev/sda1"
+BOOT="/dev/sda2"
+ROOT="/dev/sda3"
+##########
+
+LOCALTIME_URL="${GITHUB}/misc/CET"
+PARTED_URL="${GITHUB}/misc/parted.txt"
+MOUNTPOINT="/mnt/gentoo"
+INITIAL_PWD="$( pwd )"
+ROOT_PWD="Temp"
+
+# See also: https://blogs.gentoo.org/ago/2019/03/20/install-gentoo-in-less-than-one-minute/
+DIALOG_CANCEL=1
+DIALOG_ESC=255
+HEIGHT=0
+WIDTH=0
+
+display_result() {
+  dialog --title "$1" \
+    --no-collapse \
+    --msgbox "$result" 0 0
+}
+
+while true; do
+  exec 3>&1
+  selection=$(dialog \
+    --backtitle $NAME \
+    --title "Menu" \
+    --clear \
+    --cancel-label "Exit" \
+    --menu "Please select:" $HEIGHT $WIDTH 4 \
+    "1" "Get drive info" \
+    "2" "Set drive info" \
+    "3" "Set UEFI/BIOS" \
+    "4" "Set Root Password" \
+    "5" "Install" \
+    2>&1 1>&3)
+  exit_status=$?
+  exec 3>&-
+  case $exit_status in
+    $DIALOG_CANCEL)
+      clear
+      echo "Program terminated."
+      exit
+      ;;
+    $DIALOG_ESC)
+      clear
+      echo "Program aborted." >&2
+      exit 1
+      ;;
+  esac
+  case $selection in
+
+
+
+    1 )
+        result=$(fdisk -l)
+        display_result "Drives"
+    2 )
+      DISK=$(\
+        dialog --backtitle $NAME --title "Main drive name" \
+                --inputbox "Enter the drive name:" 8 40 \
+        3>&1 1>&2 2>&3 3>&- \
+        )
+      ESP=$(\
+        dialog --backtitle $NAME --title "EFI Partition Name" \
+                --inputbox "Enter the EFI Partition name (try ${DISK}1):" 8 40 \
+        3>&1 1>&2 2>&3 3>&- \
+        )
+        BOOT=$(\
+        dialog --backtitle $NAME --title "Boot Partition Name" \
+                --inputbox "Enter the Boot Partition name (try ${DISK}2):" 8 40 \
+        3>&1 1>&2 2>&3 3>&- \
+        )
+        ROOT=$(\
+        dialog --backtitle $NAME --title "Root Partition Name" \
+                --inputbox "Enter the Root Partition name (try ${DISK}3):" 8 40 \
+        3>&1 1>&2 2>&3 3>&- \
+        )
+        result="Main Drive: ${DISK}\n"
+        display_result "Info"
+      ;;
+    3 )
+      # dynbox.sh - Yes/No box demo
+dialog --title "UEFI/BIOS" \
+--backtitle $NAME \
+--yesno "Do you want UEFI?" 7 60
+
+# Get exit status
+# 0 means user hit [yes] button.
+# 1 means user hit [no] button.
+# 255 means user hit [Esc] key.
+response=$?
+case $response in
+   0) TYPE="uefi";;
+   1) TYPE="bios";;
+   255) TYPE="uefi";;
+esac
+result="Mode: ${TYPE}"
+display_result "Info"
+      ;;
+    4 )
+        ROOT_PWD=$(\
+        dialog --backtitle $NAME --title "Root Partition Name" \
+                --inputbox "Enter the Root Password:" 8 40 \
+        3>&1 1>&2 2>&3 3>&- \
+        )
+
+      ;;
+    5 )
+
+
+        if [ -z "${TYPE}" ]
+        then
+            echo "You need to delete the comment from one of the available TYPES and relaunch the script"
+            exit 1
+        fi
+
+        if [ -z "${STAGE4_URL}" ]
+        then
+            echo "You need to delete the comment from one of the available STAGE4_URL and its MD5SUM and relaunch the script"
+            exit 1
+        fi
+
+        function die () {
+            if [ "${?}" != "0" ]
+            then
+                echo "Something went wrong; aborting..."
+                exit 1
+            fi
+        }
+
+        # DATE/NTP
+        rm -fr /etc/localtime
+        curl -s -q -L "${LOCALTIME_URL}" --output /etc/localtime
+        ntpdate -b time.ien.it > /dev/null 2>&1 && hwclock -w
+
+        # CLEAN THE DISK
+        dd if=/dev/zero of="${DISK}" bs=512 count=1 conv=notrunc > /dev/null 2>&1 || die
+
+        cd /tmp/
+        curl -s -q -L "${PARTED_URL}" --output parted.txt || die
+        sed "s:CHANGEME:${DISK}:" -i parted.txt || die
+        parted -a optimal < ./parted.txt > /dev/null 2>&1 || die
+        mkfs.ext4 -F "${BOOT}" > /dev/null 2>&1 || die
+        mkfs.ext4 -F "${ROOT}" > /dev/null 2>&1 || die
+        mkdir -p "${MOUNTPOINT}" || die
+        mount "${ROOT}" "${MOUNTPOINT}" || die
+        mkdir -p "${MOUNTPOINT}"/boot || die
+        mount "${BOOT}" "${MOUNTPOINT}"/boot || die
+        cd "${MOUNTPOINT}" || die
+        echo "DOWNLOAD IN PROGRESS..."
+        curl -s -q -L "${STAGE4_URL}" --output stage4.tar.xz || die
+        echo "DOWNLOAD DONE..."
+        echo "MD5SUM CHECK IN PROGRESS..."
+        if [ "$( md5sum stage4.tar.xz | awk '{print $1}' )" != "${MD5SUM}" ]
+        then
+            echo "Something wrong with the MD5SUM"
+            exit 1
+        fi
+        echo "MD5SUM CHECK DONE..."
+        echo "DECOMPRESSION IN PROGRESS..."
+        tar -xJpf stage4.tar.xz || die
+        echo "DECOMPRESSION DONE..."
+        rm -fr stage4.tar.xz || die
+
+
+        ####
+        sed "s:j4:j$( nproc ):" -i etc/portage/make.conf
+        sed "s:BOOT:$BOOT:" -i etc/fstab || die
+        sed "s:ROOT:$ROOT:" -i etc/fstab etc/default/grub || die
+        ####
+
+        mkdir dev proc run sys tmp > /dev/null 2>&1
+        mount -t proc proc "${MOUNTPOINT}"/proc || die
+        mount --rbind /sys "${MOUNTPOINT}"/sys || die
+        mount --rbind /dev "${MOUNTPOINT}"/dev || die
+
+        # KERNEL
+        rm -fr "${MOUNTPOINT}"/boot/*hetzner*
+
+
+        # CHROOT COMMANDS
+
+        export DISK="${DISK}"
+
+        echo -ne "\n\nGRUB:\n"
+        if [ "${TYPE}" = "uefi" ]
+        then
+            mkfs.fat -F32 "${ESP}" || die
+            mkdir -p "${MOUNTPOINT}"/boot/efi
+            mount "${ESP}" "${MOUNTPOINT}"/boot/efi || die
+            chroot "${MOUNTPOINT}" /bin/bash -c 'PATH="/usr/sbin:/usr/bin:/sbin:/bin" grub-install --target=x86_64-efi --efi-directory=/boot/efi $DISK' || die
+        elif [ "${TYPE}" = "bios" ]
+        then
+            sed '/EFI/d' -i etc/fstab || die
+            chroot "${MOUNTPOINT}" /bin/bash -c 'PATH="/usr/sbin:/usr/bin:/sbin:/bin" grub-install $DISK' || die
+        fi
+
+        chroot "${MOUNTPOINT}" /bin/bash -c 'PATH="/usr/sbin:/usr/bin:/sbin:/bin" grub-mkconfig -o /boot/grub/grub.cfg' || die
+        chroot "${MOUNTPOINT}" /bin/bash -c 'PATH="/usr/sbin:/usr/bin:/sbin:/bin" echo "root:ChangeMe1999" | chpasswd' || die
+
+        rm -fr root/.ssh/authorized_keys || die
+
+        if [ -f "${INITIAL_PWD}"/id_rsa.pub ]
+        then
+            cp "${INITIAL_PWD}"/id_rsa.pub root/.ssh/authorized_keys || die
+        fi
+
+        echo -ne "LSPCI -k:\n$( lspci -k | grep "Kernel\ driver" | sort | uniq )\n\nLSMOD:\n$( lsmod )\n" > "${MOUNTPOINT}"/root/.modules_info
+
+        echo -ne "\n\n\nTHE STAGE4 INSTALLATION HAS BEEN COMPLETED....HAVE A NICE DAY ;)\n"
+    ;;
+  esac
+done
