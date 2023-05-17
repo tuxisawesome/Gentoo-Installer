@@ -12,4 +12,7 @@ emerge --ask sys-kernel/genkernel
 
 
 nano -w /etc/fstab
+clear
+echo "[*]    Now generating Kernel."
+echo "[*]    Please do not turn off the system when it's compiling."
 genkernel all

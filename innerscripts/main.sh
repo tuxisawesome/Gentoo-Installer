@@ -27,7 +27,7 @@ do
             bash scripts/4-configuration.sh
             ;;
         "6")
-            break
+            exit
             ;;
         "7")
             bash postboot/start.sh
