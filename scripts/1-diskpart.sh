@@ -7,4 +7,4 @@ user_input=$(\
 
 
 python3 scripts/1-diskpart.py $user_input 2>&1 | dialog --backtitle "WalterOS Gentoo Installer" --title "Partitioning disk" --progressbox 30 100
-sleep 4
+sleep 15

@@ -1,6 +1,8 @@
 #!/bin/bash
+read -p "Enter drive name: " drive
+echo "${drive}3     none   swap    sw    0 0" >> /etc/fstab
+echo "${drive}4     /   ext4    noatime 0 1" >> /etc/fstab
 
-nano /etc/fstab
 
 echo 'hostname="walteros"' > /etc/conf.d/hostname
 
