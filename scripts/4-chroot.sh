@@ -5,7 +5,6 @@ mkdir --parents /mnt/gentoo/etc/portage/repos.conf
 cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/gentoo.conf
 cp --dereference /etc/resolv.conf /mnt/gentoo/etc/
 cp -r innerscripts /mnt/gentoo/
-cp startup.sh /mnt/gentoo/
 echo ""
 echo "[*]   Now mounting drives:"
 echo "[*]   Mounting proc"
@@ -21,5 +20,4 @@ echo "[*]   Mounting run"
 mount --bind /run /mnt/gentoo/run
 mount --make-slave /mnt/gentoo/run
 echo "[*]   Now execute main.sh from the folder innerscripts"
-chroot /mnt/gentoo /startup.sh
 chroot /mnt/gentoo /bin/bash
