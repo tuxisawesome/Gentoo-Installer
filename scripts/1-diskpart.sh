@@ -7,3 +7,11 @@ user_input=$(\
 
 
 parted -a optimal $user_input
+
+
+mkfs.vfat ${user_input}1
+mkfs.vfat ${user_input}2
+mkfs.ext4 ${user_input}4
+mkswap ${user_input}3
+swapon ${user_input}3
+mount /dev/sda4 /mnt/gentoo
