@@ -1,36 +1,31 @@
+
+#!/bin/bash
+
 display_result() {
   dialog --title "$1" \
     --no-collapse \
+    --backtitle "Walter's Gentoo Installer" \
     --msgbox "$result" 0 0
 }
 
 
-    DISK="/dev/sda"
-ESP="/dev/sda1"
-BOOT="/dev/sda2"
-ROOT="/dev/sda3"  
-NAME="HI"
-      
-      
-      DISK=$(\
-        dialog --backtitle $NAME --title "Main drive name" \
-                --inputbox "Enter the drive name:" 8 40 \
-        3>&1 1>&2 2>&3 3>&- \
-        )
-      ESP=$(\
-        dialog --backtitle $NAME --title "EFI Partition Name" \
-                --inputbox "Enter the EFI Partition name (try ${DISK}1):" 8 40 \
-        3>&1 1>&2 2>&3 3>&- \
-        )
-        BOOT=$(\
-        dialog --backtitle $NAME --title "Boot Partition Name" \
-                --inputbox "Enter the Boot Partition name (try ${DISK}2):" 8 40 \
-        3>&1 1>&2 2>&3 3>&- \
-        )
-        ROOT=$(\
-        dialog --backtitle $NAME --title "Root Partition Name" \
-                --inputbox "Enter the Root Partition name (try ${DISK}3):" 8 40 \
-        3>&1 1>&2 2>&3 3>&- \
-        )
-        result="Main Drive: ${DISK}\nEFI: ${ESP}\nBoot: ${BOOT}\nRoot: ${ROOT}"
+if dialog --stdout --title "VM Detection" \
+          --backtitle "Walter's Gentoo Installer" \
+          --yesno "Are you in a virtual machine?" 7 60; then
+    if dialog --stdout --title "VM Detection" \
+          --backtitle "Walter's Gentoo Installer" \
+          --yesno "QEMU?" 7 60; then
+        result="A generic make.conf has been configured for you. Make as many modifications as you want."
         display_result "Info"
+        cp generic-configs/make.conf /mnt/gentoo/etc/portage/make.conf
+        nano /mnt/gentoo/etc/portage/make.conf
+    else
+        result = "Try again later."
+        display_result "Info"
+    fi
+else
+    result="A generic make.conf has been configured for you. Make as many modifications as you want."
+    display_result "Info"
+    cp generic-configs/make-intel.conf /mnt/gentoo/etc/portage/make.conf
+    nano /mnt/gentoo/etc/portage/make.conf
+fi
