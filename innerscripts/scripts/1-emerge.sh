@@ -12,5 +12,4 @@ export PS1="(chroot) ${PS1}"
 eselect profile list
 read -p "Enter KDE Profile: " fullname
 eselect profile set $fullname
-echo 'USE="-qtwebengine -webengine -bluetooth -systemd X"' >> /etc/portage/make.conf
 emerge --ask --verbose --update --deep --newuse @world

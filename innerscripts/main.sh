@@ -43,7 +43,8 @@ do
             exit
             ;;
         "7")
-            bash postboot/start.sh
+            cd postboot
+            bash start.sh
             ;;
         *) echo "invalid option $REPLY";;
     esac
