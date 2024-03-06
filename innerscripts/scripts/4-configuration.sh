@@ -12,7 +12,7 @@ emerge --ask --noreplace net-misc/netifrc
 ifconfig
 
 read -p "Enter network name: " fullname
-echo config_$fullname='"dhcp"'
+echo config_$fullname='"dhcp"' >> /etc/conf.d/net
 
 cd /etc/init.d
 

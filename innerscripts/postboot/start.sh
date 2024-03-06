@@ -195,17 +195,53 @@ seven(){
 
 eight(){
     # Check polkit
-    emerge --ask kde-apps/konsole
-    emerge --ask kde-apps/dolphin
-    emerge --ask www-client/firefox
-    emerge --ask app-misc/neofetch
-    emerge --ask --verbose app-office/libreoffice
-    emerge --ask media-gfx/gimp
-
+    echo "Do you want to install Konsole Terminal (Recommended)?"
+    echo "Install Konsole? 1 - yes, 2 - no"
+    local konsole
+	read -p "Enter choice [ 1 / 2 ] " konsole
+	case $konsole in
+		1) emerge --ask kde-apps/konsole ;;
+	esac
+    echo "Do you want to install Dolphin File Manager?"
+    echo "Install Dolphin? 1 - yes, 2 - no"
+    local dolphin
+	read -p "Enter choice [ 1 / 2 ] " dolphin
+	case $dolphin in
+		1) emerge --ask kde-apps/dolphin ;;
+	esac
     clear
-    echo "This package may take a while to compile. If you do not want to compile, just say no."
-    pause
-    emerge --ask --verbose app-office/libreoffice
+    echo "Do you want to install Firefox Web Browser? (Long Compile)"
+    echo "Install Firefox? 1 - yes, 2 - no"
+    local firefox
+	read -p "Enter choice [ 1 / 2 ] " firefox
+	case $firefox in
+		1) emerge --ask www-client/firefox ;;
+	esac
+    clear
+    echo "Do you want to install Neofetch?"
+    echo "Install Neofetch? 1 - yes, 2 - no"
+    local neofetch
+	read -p "Enter choice [ 1 / 2 ] " neofetch
+	case $neofetch in
+		1) emerge --ask app-misc/neofetch ;;
+	esac
+    clear
+    echo "Do you want to install GIMP?"
+    echo "Install GIMP? 1 - yes, 2 - no"
+    local gimp
+	read -p "Enter choice [ 1 / 2 ] " gimp
+	case $gimp in
+		1) emerge --ask media-gfx/gimp ;;
+	esac
+    clear
+    echo "Do you want to install Libreoffice? (Long Compile)"
+    echo "Install Libreoffice? 1 - yes, 2 - no"
+    local libreoffice
+	read -p "Enter choice [ 1 / 2 ] " libreoffice
+	case $libreoffice in
+		1) emerge --ask app-office/libreoffice ;;
+	esac
+    clear
     echo "This section is complete. If anything broke, please type '6' and type u."
     pause
 }
